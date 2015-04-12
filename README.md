@@ -1,0 +1,2 @@
+# awesomerc
+awesome config files
