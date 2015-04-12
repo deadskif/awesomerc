@@ -1,0 +1,5 @@
+local localrc = {}
+
+localrc.wallpaper = "/home/skif/share/images/wp.jpg"
+
+return localrc
