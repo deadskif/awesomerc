@@ -99,9 +99,9 @@ end
 -- {{{ Tags
 -- Define a tag table which hold all screen tags.
 tags = {	
-	names  = { 	"term",		"www",		"im",		"net",		5,
+	names  = { 	"term",		"vim",		"www",		"net",		5,
 			6,		7,		"offs",		"adm" },
-	layout = {	layouts[2],	layouts[3],	layouts[2],	layouts[3],	layouts[2],
+	layout = {	layouts[2],	layouts[2],	layouts[3],	layouts[3],	layouts[2],
 			layouts[2],	layouts[2],	layouts[2],	layouts[2]
 }}
 for s = 1, screen.count() do
@@ -358,8 +358,10 @@ globalkeys = awful.util.table.join(
     -- Layout manipulation
     awful.key({ modkey, "Shift"   }, "j", function () awful.client.swap.byidx(  1)    end),
     awful.key({ modkey, "Shift"   }, "k", function () awful.client.swap.byidx( -1)    end),
-    awful.key({ modkey, "Control" }, "j", function () awful.screen.focus_relative( 1) end),
-    awful.key({ modkey, "Control" }, "k", function () awful.screen.focus_relative(-1) end),
+    --awful.key({ modkey, "Control" }, "j", function () awful.screen.focus_relative( 1) end),
+    --awful.key({ modkey, "Control" }, "k", function () awful.screen.focus_relative(-1) end),
+    awful.key({ modkey,           }, ",",     function () awful.screen.focus_relative( 1)         end),
+    awful.key({ modkey,           }, ".",     function () awful.screen.focus_relative(-1)         end),
     awful.key({ modkey,           }, "u", awful.client.urgent.jumpto),
     awful.key({ modkey,           }, "Tab",
         function ()
@@ -483,20 +485,22 @@ awful.rules.rules = {
     -- Set Firefox to always map on tags number 2 of screen 1.
     -- { rule = { class = "Firefox" },
     --   properties = { tag = tags[1][2] } },
+
+    -- tag "www"
     { rule = { class = "Firefox" },
-      properties = { tag = tags[1][2] } },
+      properties = { tag = tags[1][3] } },
     { rule = { class = "Opera" },
-      properties = { tag = tags[1][2] } },
+      properties = { tag = tags[1][3] } },
+    -- tag "net"
     { rule = { class = "Thunderbird" },
       properties = { tag = tags[1][4] } },
     { rule = { instance = "qbittorrent" },
       properties = { tag = tags[1][4] } },
     { rule = { instance = "eiskaltdcpp-gtk" },
       properties = { tag = tags[1][4] } },
-    { rule = { class = "Qutim" },
-      properties = { tag = tags[1][3] } },
     { rule = { class = "Claws-mail" },
       properties = { tag = tags[1][4] } },
+    -- tag "offs"
     { rule = { class = "LibreOffice" },
       properties = { tag = tags[1][8] } },
     { rule = { class = "Xpdf" },
@@ -507,6 +511,13 @@ awful.rules.rules = {
       properties = { tag = tags[1][8] } },
     { rule = { class = "Djview" },
       properties = { tag = tags[1][8] } },
+    { rule = { class = "Apvlv" },
+      properties = { tag = tags[1][8] } },
+    -- tag "www"
+    { rule = { class = "Gvim" },
+      properties = { tag = tags[1][2] } },
+
+
     { rule = { class = "Wpa_gui" },
       properties = { floating = true } },
     { rule = { class = "Mytetra" },
