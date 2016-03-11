@@ -14,6 +14,19 @@ local vicious = require("vicious")
 
 local os = require("os")
 
+-- local inspect = require('inspect')
+function dump(o)
+   if type(o) == 'table' then
+      local s = '{ '
+      for k,v in pairs(o) do
+         if type(k) ~= 'number' then k = '"'..k..'"' end
+         s = s .. '['..k..'] = ' .. dump(v) .. ','
+      end
+      return s .. '} '
+   else
+      return tostring(o)
+   end
+end
 --local localrc = dofile(awful.util.getdir("config") .. "/" .. "localrc.lua")
 -- package.loaded.localrc = false
 local myrc = require("myrc")
@@ -160,9 +173,53 @@ mytaglist.buttons = awful.util.table.join(
                     awful.button({ }, 4, function(t) awful.tag.viewnext(awful.tag.getscreen(t)) end),
                     awful.button({ }, 5, function(t) awful.tag.viewprev(awful.tag.getscreen(t)) end)
                     )
+local mk_sleep_timer = timer({ timeout = 60 })
+local mk_sleep_pid=0
+local say = function(w,msg) 
+     naughty.notify({ preset = naughty.config.presets.normal,
+                         title = w,
+                         text = msg })
+end
+mk_sleep_timer:connect_signal("timeout", function ()
+    mk_sleep_timer:stop()   
+    say("Awesome","Suspending "..mk_sleep_pid)
+    awful.util.spawn(string.format ("kill -SIGSTOP -- %s",mk_sleep_pid),false)
+end )   
+local mk_sleep_callback=function (c)
+    local sig
+    if c == client.focus then
+        sig='STOP'
+    elseif c.minimized then
+        sig='CONT'
+    end     
+    if sig then
+        local pid=c.pid
+        if c.class == "Firefox" then
+            local matcher = function (c)
+                return awful.rules.match(c, {class = 'Firefox'})
+            end     
+            for n in awful.client.iterate(matcher) do
+                if n ~= c and not n.minimized then
+                    return
+                end
+            end;
+        end
+        if pid<=0 then return end
+        if sig=='STOP' then
+            mk_sleep_pid=pid
+            mk_sleep_timer:again()
+        else
+            mk_sleep_timer:stop()
+            awful.util.spawn(string.format ("kill -SIGCONT -- %s",pid),false)
+        end
+    end
+end
 mytasklist = {}
 mytasklist.buttons = awful.util.table.join(
                      awful.button({ }, 1, function (c)
+                                                if c.class == "Firefox" then --or c.name=="RimWorld" then
+                                                    mk_sleep_callback(c)
+                                                end
                                               if c == client.focus then
                                                   c.minimized = true
                                               else
