@@ -1,7 +1,6 @@
 -- Standard awesome library
 local gears = require("gears")
 local awful = require("awful")
-awful.rules = require("awful.rules")
 require("awful.autofocus")
 -- Widget and layout library
 local wibox = require("wibox")
@@ -11,27 +10,13 @@ local beautiful = require("beautiful")
 local naughty = require("naughty")
 local menubar = require("menubar")
 local hotkeys_popup = require("awful.hotkeys_popup").widget
-local vicious = require("vicious")
 -- Enable hotkeys help widget for VIM and other apps
 -- when client with a matching name is opened:
 require("awful.hotkeys_popup.keys")
 
-local os = require("os")
-
--- local inspect = require('inspect')
-function dump(o)
-   if type(o) == 'table' then
-      local s = '{ '
-      for k,v in pairs(o) do
-         if type(k) ~= 'number' then k = '"'..k..'"' end
-         s = s .. '['..k..'] = ' .. dump(v) .. ','
-      end
-      return s .. '} '
-   else
-      return tostring(o)
-   end
-end
 local myrc = require("myrc")
+local mywidgets = require("widgets")
+
 beautiful.wallpaper = myrc.wallpaper
 os.setlocale("LC_CTYPE=ru_RU.UTF-8;LC_NUMERIC=ru_RU.UTF-8;LC_TIME=ru_RU.UTF-8;LC_COLLATE=ru_RU.UTF-8;LC_MONETARY=ru_RU.UTF-8;LC_MESSAGES=ru_RU.UTF-8;LC_PAPER=ru_RU.UTF-8;LC_NAME=ru_RU.UTF-8;LC_ADDRESS=ru_RU.UTF-8;LC_TELEPHONE=ru_RU.UTF-8;LC_MEASUREMENT=ru_RU.UTF-8;LC_IDENTIFICATION=ru_RU.UTF-8")
 -- {{{ Error handling
@@ -113,7 +98,7 @@ end
 -- }}}
 
 -- {{{ Menu
--- Create a laucher widget and a main menu
+-- Create a launcher widget and a main menu
 myawesomemenu = {
    { "hotkeys", function() return false, hotkeys_popup.show_help end},
    { "manual", terminal .. " -e man awesome" },
@@ -150,8 +135,7 @@ mykeyboardlayout = awful.widget.keyboardlayout()
 
 -- {{{ Wibar
 -- Create a textclock widget
--- mytextclock = awful.widget.textclock({ align = "right" }, "%d %b %R")
-mytextclock = awful.widget.textclock("%d %b %R")
+mytextclock = wibox.widget.textclock()
 
 -- Create a wibox for each screen and add it
 local taglist_buttons = gears.table.join(
@@ -251,91 +235,6 @@ local function set_wallpaper(s)
     end
 end
 
-
-local mywidgetupdatetime = 3
-
-local mybatwidget = wibox.widget.textbox()
-
-vicious.register(mybatwidget, vicious.widgets.bat,
-	function(widget,args)
-		local col = ""
-		if args[1] == "-" then
-			col = "#FF3030"
-		else
-			col = "#30FF30"
-		end
-		return "[<span color=\""..col.."\">"..args[2] .. "%" .. args[1].."</span>]"
- 		end, mywidgetupdatetime, 'BAT0')
-local mymemwidget = wibox.widget.textbox()
-vicious.register(mymemwidget, vicious.widgets.mem, "$2Mb", mywidgetupdatetime)
---
-local mycpuf0widget = wibox.widget.textbox()
-vicious.register(mycpuf0widget, vicious.widgets.cpufreq, "$2$5", mywidgetupdatetime, "cpu0")
-local mycpuf1widget = wibox.widget.textbox()
-vicious.register(mycpuf1widget, vicious.widgets.cpufreq, "$2$5", mywidgetupdatetime, "cpu1")
-local mycpuf2widget = wibox.widget.textbox()
-vicious.register(mycpuf2widget, vicious.widgets.cpufreq, "$2$5", mywidgetupdatetime, "cpu2")
-local mycpuf3widget = wibox.widget.textbox()
-vicious.register(mycpuf3widget, vicious.widgets.cpufreq, "$2$5", mywidgetupdatetime, "cpu3")
---
-local mythermwidget = wibox.widget.textbox()
-vicious.register(mythermwidget, --vicious.widgets.thermal, 
-	--function(format, warg) return 
-	function(format, warg)
-		local thermals = {}
-		local t_inp = "/sys/class/hwmon/hwmon0/temp1_input"
-		--local bpath, inputs = "/sys/class/hwmon/hwmon0", { "temp1_input", "temp3_input", "temp7_input" }
-		--thermals = inputs
-		--for i,k in ipairs(inputs) do
-		local f = io.open(t_inp)
-		if f then
-			local s = f:read("*all")
-			f:close()
-			table.insert(thermals, s / 1000)
-		else
-			table.insert(thermals, "-")
-		end
-		--end
-		return thermals
-	end,
-	"$1°", mywidgetupdatetime)
-local mynetwidget = wibox.widget.textbox()
-vicious.register(mynetwidget,
-	function(format, warg)
-		local bpath = "/sys/class/net/"
-		local states = {}
-		for i,k in ipairs(warg) do
-			local f = io.open(bpath .. k .. "/operstate")
-			if f then
-				local s = f:read("*all")
-				f:close()
-				states[k] = s or "fail"
-			else
-				states[k] = "fail"
-		--		table.insert(states, "-")
-			end
-			--states[k] = i
-			--table.insert(states, k)
-		end
-		return states
-	end, function(widget, arg)
-		local s = ""
-		for k,v in pairs(arg) do
-			local n = ""
-			local tt = { enp0s25 = "E", wlp3s0 = "W", lo = "0", ppp0 = "P", enp0s20u1 = "U" }
-			k = tt[k] or "?"
-			if v == "up\n" then
-				n = "<span color=\"#30FF30\">" .. k .. "</span>"
-			elseif v == "down\n" then
-			--else
-				n = "<span color=\"#FF3030\">" .. k .. "</span>"
-			--else
-			--	n = "?"
-			end
-			s = s .. n 
-		end
-		return "[" .. s .. "]"
-	end, mywidgetupdatetime, { "wlp3s0", "enp0s25", "enp0s20u1" });
 -- Re-set wallpaper when a screen's geometry changes (e.g. different resolution)
 screen.connect_signal("property::geometry", set_wallpaper)
 
@@ -377,10 +276,14 @@ awful.screen.connect_for_each_screen(function(s)
         s.mytasklist, -- Middle widget
         { -- Right widgets
             layout = wibox.layout.fixed.horizontal,
-            mybatwidget,
-            mythermwidget,
-            mynetwidget,
-            mymemwidget,
+            mywidgets.net,
+            mywidgets.mem,
+            mywidgets.swap,
+            --mywidgets.cpuf0,
+            --mywidgets.cpuf1,
+            --mywidgets.cpuf2,
+            --mywidgets.cpuf3,
+            mywidgets.cpugraph,
             mykeyboardlayout,
             wibox.widget.systray(),
             mytextclock,
@@ -468,7 +371,7 @@ globalkeys = gears.table.join(
               {description = "select next", group = "layout"}),
     awful.key({ modkey, "Shift"   }, "space", function () awful.layout.inc(-1)                end,
               {description = "select previous", group = "layout"}),
-    awful.key({ modkey, "Control", "Shift" }, "l",     function () awful.util.spawn(xlock)	end),
+    awful.key({ modkey, "Control", "Shift" }, "l",     function () awful.util.spawn(xlock)    end),
 
     awful.key({ modkey, "Control" }, "n",
               function ()
@@ -620,11 +523,21 @@ awful.rules.rules = {
 
     -- Floating clients.
     { rule_any = {
+        instance = {
+          "DTA",  -- Firefox addon DownThemAll.
+          "copyq",  -- Includes session name in class.
+        },
         class = {
           "mpv",
           "gimp",
+          "xtightvncviewer"},
+
+        name = {
+          "Event Tester",  -- xev.
+        },
+        role = {
+          "AlarmWindow",  -- Thunderbird's calendar.
           "pop-up",       -- e.g. Google Chrome's (detached) Developer Tools.
-          "Wpa_gui",
         }
       }, properties = { floating = true }},
 
@@ -634,7 +547,7 @@ awful.rules.rules = {
     },
 
     -- tag "www"
-    { rule_any = { class = { "Firefox", "Navigator", } },
+    { rule_any = { class = { "Firefox", "Navigator", "Pale moon" } },
       properties = { screen = 1, tag = "www" } },
     -- tag "net"
     { rule_any = {
