@@ -44,9 +44,10 @@ widgets.mem = wibox.widget {
        max_value        = 1,
        value            = 0.10,
        background_color = beautiful.bg_normal or "#3F3F3F",
-       color            = {type="linear", from = {0, 0}, to = {0, 20},
-            stops = { {0, "#F6F6F6"}, {0.5, 
-            "#bdbdbd"}, {1.0, "#3b3b3b"} }
+       color            = {type="linear", from = {0, 0}, to = {20, 0},
+            --stops = { {0, "#F6F6F6"}, {0.5, 
+            --"#bdbdbd"}, {1.0, "#3b3b3b"} }
+            stops = { {0, "#008000"}, {0.5, "#FFA500"}, {1.0, "#ff0000"}}
        },
        widget           = wibox.widget.progressbar,
    },
@@ -58,8 +59,10 @@ widgets.mem = wibox.widget {
 
 local mem_t = awful.tooltip({ objects = { widgets.mem }})
 function vicious_formatter_memory(widget, data)
-    local memory_percentage = math.floor(((data[2] / data[3]) * 100) + 0.5)
-    local tooltip_text = string.format('Current memory usage: %d%% (%dMB out of %dMB) ', memory_percentage, data[2], data[3])
+    local memory_percentage = math.floor(((data[9] / data[3]) * 100) + 0.5)
+    local tooltip_text = string.format('Memory usage: %d%% (%dMB out of %dMB)\n'
+                .. 'Memory (with buffers and cache) usage: %d%%(%dMB out of %dMB)',
+                data[1], data[2], data[3], memory_percentage, data[9], data[3])
     mem_t:set_text(tooltip_text)
     return memory_percentage
 end
@@ -72,9 +75,10 @@ widgets.swap = wibox.widget {
        value            = 0.10,
        --background_color = "#131211",
        background_color = beautiful.bg_focus or "#3F3F3F",
-       color            = {type="linear", from = {0, 0}, to = {0, 20},
-            stops = { {0, "#F6F6F6"}, {0.5, 
-            "#bdbdbd"}, {1.0, "#3b3b3b"} }
+       color            = {type="linear", from = {0, 0}, to = {20, 0},
+            --stops = { {0, "#F6F6F6"}, {0.5, 
+            --"#bdbdbd"}, {1.0, "#3b3b3b"} }
+            stops = { {0, "#008000"}, {0.5, "#FFA500"}, {1.0, "#ff0000"}}
        },
        widget           = wibox.widget.progressbar,
    },
@@ -83,7 +87,7 @@ widgets.swap = wibox.widget {
    direction        = 'east',
    layout           = wibox.container.rotate
 }
-local swap_t = awful.tooltip({ objects = { widgets.swap }, fg = '#00ff00', bg = '#000000' })
+local swap_t = awful.tooltip({ objects = { widgets.swap }})
 -- Vicious display formatter for swap graph
 function vicious_formatter_swap(widget, data)
     local swap_percentage = math.floor(((data[6] / data[7]) * 100) + 0.5)
@@ -95,6 +99,7 @@ end
 vicious.register(widgets.swap:get_all_children()[1], vicious.widgets.mem, vicious_formatter_swap, mywidgetupdatetime)
 
 widgets.net = wibox.widget.textbox()
+local net_t = awful.tooltip({ objects = { widgets.net }})
 vicious.register(widgets.net,
 	function(format, warg)
 		local states = {}
@@ -106,7 +111,7 @@ vicious.register(widgets.net,
                 if f then
                     local s = f:read("*all")
                     f:close()
-                    states[name] = s or "fail"
+                    states[name] = string.gsub(s, "\n", "") or "fail"
                 else
                     states[name] = "fail"
                 end
@@ -115,21 +120,23 @@ vicious.register(widgets.net,
 		return states
 	end, function(widget, arg)
 		local s = ""
+        local t = "Interfaces:"
 		for k,v in pairs(arg) do
 			local n = ""
-            if k == "lo" then
-                k = "➰"
-            end
+            t = t .. "\n" .. k .. " " .. v 
 			k = string.upper(string.sub(k, 1, 1))
-			if v == "up\n" then
+			if v == "up" then
 				n = "<span color=\"#30FF30\">" .. k .. "</span>"
-			elseif v == "down\n" then
-				n = "<span color=\"#FF3030\">" .. k .. "</span>"
+			elseif v == "down" then
+				n = "<span color=\"#FF0000\">" .. k .. "</span>"
 			end
 			s = s .. n 
 		end
+        net_t:set_text(t)
 		return "[" .. s .. "]"
 
 	end, mywidgetupdatetime);
 
+--widgets.bat = wibox.widget.textbox()
+--vicious.register(widgets.bat, vicious.widgets.bat, "$2%$1", mywidgetupdatetime, "BAT0")
 return widgets
